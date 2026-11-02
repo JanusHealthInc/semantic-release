@@ -21,7 +21,9 @@ Help us keep **semantic-release** open and inclusive. Please read and follow our
 
 ### Improve documentation
 
-As a **semantic-release** user, you are the perfect candidate to help us improve our documentation: typo corrections, clarifications, more examples, new [recipes](docs/recipes), etc. Take a look at the [documentation issues that need help](https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+user%3Asemantic-release+archived%3Afalse+label%3A%22help+wanted%22+label%3Adocs+).
+As a **semantic-release** user, you are the perfect candidate to help us improve our documentation: typo corrections, clarifications, more examples, new [recipes](https://github.com/semantic-release/docs/tree/main/docs/recipes/), etc.
+
+Check out the [documentation issues that need help](https://github.com/semantic-release/docs/issues) in the [semantic-release/docs](https://github.com/semantic-release/docs) repository.
 
 Please follow the [Documentation guidelines](#documentation).
 
@@ -40,26 +42,26 @@ Post a comment on an issue to indicate you would like to work on it and to reque
 
 ## Using the issue tracker
 
-The issue tracker is the channel for [bug reports](#bug-report), [features requests](#feature-request) and [submitting pull requests](#submitting-a-pull-request) only.
-Please use the [Support](docs/support/README.md) and [Get help](README.md#get-help) sections for support, troubleshooting and questions.
+The issue tracker is the channel for [bug reports](#bug-report), [feature requests](#feature-request) and [submitting pull requests](#submitting-a-pull-request) only.
+Please use the [Support](https://semantic-release.org/support/) and [Get help](README.md#get-help) sections for support, troubleshooting and questions.
 
 Before opening an issue or a Pull Request, please use the [GitHub issue search](https://github.com/issues?utf8=%E2%9C%93&q=user%3Asemantic-release) to make sure the bug or feature request hasn't been already reported or fixed.
 
 ### Bug report
 
 A good bug report shouldn't leave others needing to chase you for more information.
-Please try to be as detailed as possible in your report and fill the information requested in the [bug report template](https://github.com/semantic-release/semantic-release/issues/new?template=01_bug_report.md).
+Please try to be as detailed as possible in your report and fill the information requested in the [bug report template](https://github.com/semantic-release/semantic-release/issues/new?template=01_bug_report.yml).
 
 ### Feature request
 
 Feature requests are welcome, but take a moment to find out whether your idea fits with the scope and aims of the project.
 It's up to you to make a strong case to convince the project's developers of the merits of this feature.
-Please provide as much detail and context as possible and fill the information requested in the [feature request template](https://github.com/semantic-release/semantic-release/issues/new?template=02_feature_request.md).
+Please provide as much detail and context as possible and fill the information requested in the [feature request template](https://github.com/semantic-release/semantic-release/issues/new?template=02_feature_request.yml).
 
 ### New plugin request
 
-[Plugins](docs/usage/plugins.md) are a great way to extend **semantic-release** capabilities, integrate with other systems and support new project type.
-Please provide as much detail and context as possible and fill the information requested in the [plugin suggestion template](https://github.com/semantic-release/semantic-release/issues/new?template=03_plugin_suggestion.md).
+[Plugins](https://semantic-release.org/foundation/plugins/) are a great way to extend **semantic-release** capabilities, integrate with other systems and support new project types.
+Please provide as much detail and context as possible and fill the information requested in the [plugin suggestion template](https://github.com/semantic-release/semantic-release/issues/new?template=03_plugin_suggestion.yml).
 
 ## Submitting a Pull Request
 
@@ -146,7 +148,7 @@ If possible, make [atomic commits](https://en.wikipedia.org/wiki/Atomic_commit),
 
 - a commit should contain exactly one self-contained functional change
 - a functional change should be contained in exactly one commit
-- a commit should not create an inconsistent state (such as test errors, linting errors, partial fix, feature with documentation etc...)
+- a commit should not create an inconsistent state (such as test errors, linting errors, partial fix, feature without documentation, etc...)
 
 A complex feature can be broken down into multiple commits as long as each one maintains a consistent state and consists of a self-contained change.
 
@@ -241,42 +243,82 @@ $ git clone https://github.com/semantic-release/<repo-name>
 $ cd <repo-name>
 # Assign the original repo to a remote called "upstream"
 $ git remote add upstream https://github.com/semantic-release/<repo-name>
+# Switch your node version to the version defined by the project as the development version
+# This step assumes you have already installed and configured https://github.com/nvm-sh/nvm
+# You may need to run `nvm install` if you have not already installed the development node version
+$ nvm use
 # Install the dependencies
 $ npm install
 ```
 
-### Lint
+### Verification
 
-All the [semantic-release](https://github.com/semantic-release) repositories use [XO](https://github.com/sindresorhus/xo) for linting and [Prettier](https://prettier.io) for formatting.
-Prettier formatting will be automatically verified and fixed by XO.
+The `test` script is structured to execute as much of the verification for the project as possible.
+Ensuring that the `test` script fully passes in the node version defined as the development version in the `.nvmrc`
+minimizes the chances of the test workflow failing after pushing your changes.
 
-Before pushing your code changes make sure there are no linting errors with `npm run lint`.
+> [!IMPORTANT]
+> Before pushing your code changes, be sure to run the verification for the project with `npm test`.
 
-**Tips**:
+[npm-run-all2](https://www.npmjs.com/package/npm-run-all2) is used to enable running multiple independent lint and test
+scripts together from the `test` script.
+This enables the test script to not only run all scripts, but also parallelize some of the scripts to optimize the overall
+time required for verification.
 
-- Most linting errors can be automatically fixed with `npm run lint -- --fix`.
-- Install the [XO plugin](https://github.com/sindresorhus/xo#editor-plugins) for your editor to see linting errors directly in your editor and automatically fix them on save.
+When a failure occurs with the `test`, the output can be a bit confusing because there may be output from multiple parallel
+scripts mixed together.
+To investigate the failure with cleaner output, re-run the problematic script directly using the script name from the label
+included on the left side of the output
 
-### Tests
+```shell
+$ npm run <script-name>
+```
 
-Running the integration test requires you to install [Docker](https://docs.docker.com/engine/installation) on your machine.
+#### Lint
+
+##### Prettier
+
+All the [semantic-release](https://github.com/semantic-release) repositories use [Prettier](https://prettier.io) for formatting.
+Prettier formatting will be automatically verified by the `lint:prettier` script, included in the `test` script.
+
+> [!NOTE]
+> Most linting errors can be automatically fixed with `npm run lint:prettier:fix`.
+
+##### Other Lint Tools
+
+Other tools are used for specific compatibility concerns, but are less likely to result in failures in common contributions.
+Please follow the guidance of these tools if failures are encountered.
+
+#### Tests
+
+> [!NOTE]
+> Before pushing your code changes make sure all **tests pass** and the unit test **coverage is 100%**:
 
 All the [semantic-release](https://github.com/semantic-release) repositories use [AVA](https://github.com/avajs/ava) for writing and running tests.
 
-Before pushing your code changes make sure all **tests pass** and the **coverage is 100%**:
-
-```bash
-$ npm run test
-```
-
-**Tips:** During development you can:
+During development, you can:
 
 - run only a subset of test files with `ava <glob>`, for example `ava test/mytestfile.test.js`
 - run in watch mode with `ava -w` to automatically run a test file when you modify it
 - run only the test you are working on by adding [`.only` to the test definition](https://github.com/avajs/ava#running-specific-tests)
 
+##### Unit Tests
+
+```bash
+$ npm run test:unit
+```
+
+##### Integration Tests
+
+> [!IMPORTANT]
+> Running the integration test requires you to install [Docker](https://docs.docker.com/engine/installation) on your machine.
+
+```bash
+$ npm run test:integration
+```
+
 ### Commits
 
 All the [semantic-release](https://github.com/semantic-release) repositories use [Commitizen](https://github.com/commitizen/cz-cli) to help you create [valid commit messages](#commit-message-guidelines).
 
-After staging your changes with `git add`, run `npm run cm` to start the interactive commit message CLI.
+Assuming you have [installed Commitizen](https://github.com/commitizen/cz-cli#installing-the-command-line-tool), run `git cz` to start the interactive commit message CLI rather than `git commit` when committing.
