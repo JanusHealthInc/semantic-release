@@ -7,6 +7,7 @@ import AggregateError from "aggregate-error";
 import SemanticReleaseError from "@semantic-release/error";
 import { COMMIT_EMAIL, COMMIT_NAME, SECRET_REPLACEMENT } from "../lib/definitions/constants.js";
 import {
+  gitAddConfig,
   gitAddNote,
   gitCheckout,
   gitCommits,
@@ -47,6 +48,8 @@ test.afterEach.always((t) => {
 test.serial("Plugins are called with expected values", async (t) => {
   // Create a git repository, set the current working directory at the root of the repo
   const { cwd, repositoryUrl } = await gitRepo(true);
+  // Keep commit decorations independent of when Git updates remote-tracking refs.
+  await gitAddConfig("log.excludeDecoration", "refs/remotes/*", { cwd });
   // Add commits to the master branch
   let commits = await gitCommits(["First"], { cwd });
   // Create the tag corresponding to version 1.0.0
